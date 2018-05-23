@@ -1,6 +1,12 @@
 
 #include <string>
-#include "sqlite3/sqlite3.h"
+#include <functional>
+#include <vector>
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32)
+#include <sqlite3/sqlite3.h>
+#else
+#include <sqlite3.h>
+#endif
 
 class DBSqlite
 {
@@ -17,6 +23,12 @@ public:
 	// 用来创建一个db数据库 db为数据库的名字  
 	// 打开数据库  
 	void initDB(const char* db);
+
+	// 注册
+	void regsiterCallBack(std::function<int(int, std::vector<std::string>, std::vector<std::string>)> callback);
+
+	// 用来执行回调  
+	int callFunction(void* para, int n_column, char** column_value, char** column_name);
 
 	// 用来判断表格是否存在  
 	// name:表示表名  
@@ -47,18 +59,18 @@ public:
 	int getDataCount(std::string sql);
 
 	// 读取一条记录的信息  
-	/*
-	*  此方法是查询方法，相当之重要，pSender最好是个vector
-	*/
+	// 此方法是查询方法，相当之重要，pSender最好是个vector  
 	void getDataInfo(std::string sql, void* pSend);
 
 	// 关闭打开的数据库  
 	void disposeDB();
 
 public:
-	//数据库指针  
+	// 数据库指针  
 	sqlite3* m_pDBSqlite;
-	//错误信息  
+	// 错误信息  
 	char* m_pErrMsg;
+	// 回调函数
+	std::function<int(int, std::vector<std::string>, std::vector<std::string>)> m_pCallBack;
 
 };

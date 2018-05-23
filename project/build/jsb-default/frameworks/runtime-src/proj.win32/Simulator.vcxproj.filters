@@ -23,6 +23,9 @@
     <Filter Include="Classes\scripting\js-bindings\auto">
       <UniqueIdentifier>{c7909556-ff1d-4d50-b6d1-1f93be657cb8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Classes\scripting\js-bindings\manual">
+      <UniqueIdentifier>{95122558-7fbc-4528-9e13-a3475ebf8e12}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -40,6 +43,9 @@
     <ClCompile Include="..\Classes\scripting\js-bindings\auto\jsb_external_sqlite_auto.cpp">
       <Filter>Classes\scripting\js-bindings\auto</Filter>
     </ClCompile>
+    <ClCompile Include="..\Classes\scripting\js-bindings\manual\jsb_external_sqlite_manual.cpp">
+      <Filter>Classes\scripting\js-bindings\manual</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Classes\AppDelegate.h">
@@ -54,6 +60,9 @@
     </ClInclude>
     <ClInclude Include="..\Classes\scripting\js-bindings\auto\jsb_external_sqlite_auto.hpp">
       <Filter>Classes\scripting\js-bindings\auto</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Classes\scripting\js-bindings\manual\jsb_external_sqlite_manual.hpp">
+      <Filter>Classes\scripting\js-bindings\manual</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

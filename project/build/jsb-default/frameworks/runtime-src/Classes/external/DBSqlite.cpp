@@ -22,12 +22,34 @@ void DBSqlite::initDB(const char* db)
 	}
 }
 
-// existTable的回调函数  
-int existCallBack(void * para, int n_column, char ** column_value, char ** column_name)
+void DBSqlite::regsiterCallBack(std::function<int(int, std::vector<std::string>, std::vector<std::string>)> callback)
 {
-	bool *isExisted_ = (bool*)para;
-	*isExisted_ = (**column_value) != '0';
-	return 0;
+	m_pCallBack = callback;
+}
+
+int DBSqlite::callFunction(void* para, int n_column, char** column_value, char** column_name)
+{
+	std::vector<std::string> value;
+	value.resize(n_column);
+
+	std::vector<std::string> name;
+	name.resize(n_column);
+
+	for (int i = 0; i < n_column; i++)
+	{
+		value[i] = column_value[i];
+		name[i] = column_name[i];
+	}
+
+	m_pCallBack(n_column, value, name);
+
+	return 1;
+}
+
+// 回调函数  
+int loadRecordCB(void * para, int n_column, char ** column_value, char ** column_name)
+{
+	return DBSqlite::getInstance()->callFunction(para, n_column, column_value, column_name);
 }
 
 // 用来判断表格是否存在  
@@ -39,7 +61,7 @@ bool DBSqlite::existTable(std::string name)
 		// 判断表是否存在  
 		bool isExisted;
 		std::string sqlstr = "select count(type) from sqlite_master where type='table' and name ='" + name + "'";
-		int result = sqlite3_exec(m_pDBSqlite, sqlstr.c_str(), existCallBack, &isExisted, &m_pErrMsg);
+		int result = sqlite3_exec(m_pDBSqlite, sqlstr.c_str(), loadRecordCB, &isExisted, &m_pErrMsg);
 		return isExisted;
 	}
 	return false;
@@ -107,37 +129,23 @@ void DBSqlite::updateData(std::string sql)
 	}
 }
 
-// getDataCount的回调函数  
-int loadRecordCount(void * para, int n_column, char ** column_value, char ** column_name)
-{
-	int *count = (int*)para;
-	*count = n_column;
-	return 0;
-}
-
 // 获取记录的条数  
 // @示例语句string sqlstr = "select count(*) from user";  
 // @示例语句  取得表格字段的语句string sqlstr = "select * from user";  
 int DBSqlite::getDataCount(std::string sql)
 {
 	int count = 0;
-	sqlite3_exec(m_pDBSqlite, sql.c_str(), loadRecordCount, &count, &m_pErrMsg);
+	sqlite3_exec(m_pDBSqlite, sql.c_str(), loadRecordCB, &count, &m_pErrMsg);
 	return count;
-}
-
-// getDataInfo的回调函数  
-int loadRecord(void * para, int n_column, char ** column_value, char ** column_name)
-{
-	return 0;
 }
 
 // 读取一条记录的信息  
 /*
-*  此方法是查询方法，相当之重要，pSender最好是个vector
+*  此方法是查询方法，相当之重要，pSender最好是个vector 
 */
 void DBSqlite::getDataInfo(std::string sql, void* pSend)
 {
-	sqlite3_exec(m_pDBSqlite, sql.c_str(), loadRecord, pSend, &m_pErrMsg);
+	sqlite3_exec(m_pDBSqlite, sql.c_str(), loadRecordCB, pSend, &m_pErrMsg);
 }
 
 // 关闭打开的数据库  

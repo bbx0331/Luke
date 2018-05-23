@@ -107,7 +107,7 @@
       </Command>
     </PreLinkEvent>
     <Link>
-      <AdditionalDependencies>v8.dll.lib;v8_libbase.dll.lib;v8_libplatform.dll.lib;libuv.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>v8.dll.lib;v8_libbase.dll.lib;v8_libplatform.dll.lib;libuv.lib;sqlite3.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(OutDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
@@ -185,12 +185,14 @@ copy "$(ProjectDir)..\..\..\project.json" "$(OutDir)\" /Y</Command>
     <ClCompile Include="..\Classes\external\DBSqlite.cpp" />
     <ClCompile Include="..\Classes\jsb_module_register.cpp" />
     <ClCompile Include="..\Classes\scripting\js-bindings\auto\jsb_external_sqlite_auto.cpp" />
+    <ClCompile Include="..\Classes\scripting\js-bindings\manual\jsb_external_sqlite_manual.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="..\Classes\AppDelegate.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Classes\external\DBSqlite.h" />
     <ClInclude Include="..\Classes\scripting\js-bindings\auto\jsb_external_sqlite_auto.hpp" />
+    <ClInclude Include="..\Classes\scripting\js-bindings\manual\jsb_external_sqlite_manual.hpp" />
     <ClInclude Include="main.h" />
     <ClInclude Include="..\Classes\AppDelegate.h" />
     <ClInclude Include="resource.h" />

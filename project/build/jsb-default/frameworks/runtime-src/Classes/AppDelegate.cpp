@@ -32,6 +32,7 @@
 #include "cocos/scripting/js-bindings/manual/jsb_global.h"
 #include "cocos/scripting/js-bindings/jswrapper/SeApi.h"
 #include "scripting/js-bindings/auto/jsb_external_sqlite_auto.hpp"
+#include "scripting/js-bindings/manual/jsb_external_sqlite_manual.hpp"
 
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID || CC_TARGET_PLATFORM == CC_PLATFORM_IOS) && PACKAGE_AS
 #include "SDKManager.h"
@@ -73,7 +74,7 @@ bool AppDelegate::applicationDidFinishLaunching()
 #if(CC_TARGET_PLATFORM == CC_PLATFORM_WP8) || (CC_TARGET_PLATFORM == CC_PLATFORM_WINRT)
         glview = GLViewImpl::create("Simulator");
 #else
-        glview = GLViewImpl::createWithRect("Simulator", cocos2d::Rect(0,0,900,640));
+        glview = GLViewImpl::createWithRect("Simulator", cocos2d::Rect(0,0,320,568));
 #endif
         director->setOpenGLView(glview);
     }
@@ -107,6 +108,7 @@ bool AppDelegate::applicationDidFinishLaunching()
 #endif
 
 	se->addRegisterCallback(register_all_external_sqlite);
+	se->addRegisterCallback(register_all_external_sqlite_manual);
 
     se->start();
 
