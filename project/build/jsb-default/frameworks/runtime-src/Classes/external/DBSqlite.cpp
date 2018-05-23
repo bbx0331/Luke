@@ -27,23 +27,23 @@ void DBSqlite::regsiterCallBack(std::function<int(int, std::vector<std::string>,
 	m_pCallBack = callback;
 }
 
-int DBSqlite::callFunction(void* para, int n_column, char** column_value, char** column_name)
+int DBSqlite::callFunction(void* para, int count, char** column_value, char** column_name)
 {
 	std::vector<std::string> value;
-	value.resize(n_column);
-
-	std::vector<std::string> name;
-	name.resize(n_column);
-
-	for (int i = 0; i < n_column; i++)
+	value.resize(count);
+	for (int i = 0; i < count; i++)
 	{
 		value[i] = column_value[i];
-		name[i] = column_name[i];
 	}
 
-	m_pCallBack(n_column, value, name);
+	std::vector<std::string> name;
+	name.resize(count);
+	for (int i = 0; i < count; i++)
+	{
+		value[i] = column_name[i];
+	}
 
-	return 1;
+	return m_pCallBack(count, value, name);;
 }
 
 // 回调函数  
@@ -143,9 +143,9 @@ int DBSqlite::getDataCount(std::string sql)
 /*
 *  此方法是查询方法，相当之重要，pSender最好是个vector 
 */
-void DBSqlite::getDataInfo(std::string sql, void* pSend)
+void DBSqlite::getDataInfo(std::string sql, void* sender)
 {
-	sqlite3_exec(m_pDBSqlite, sql.c_str(), loadRecordCB, pSend, &m_pErrMsg);
+	sqlite3_exec(m_pDBSqlite, sql.c_str(), loadRecordCB, sender, &m_pErrMsg);
 }
 
 // 关闭打开的数据库  

@@ -59,8 +59,8 @@ public:
 	int getDataCount(std::string sql);
 
 	// 读取一条记录的信息  
-	// 此方法是查询方法，相当之重要，pSender最好是个vector  
-	void getDataInfo(std::string sql, void* pSend);
+	// 此方法是查询方法，相当之重要，sender最好是个vector  
+	void getDataInfo(std::string sql, void* sender);
 
 	// 关闭打开的数据库  
 	void disposeDB();

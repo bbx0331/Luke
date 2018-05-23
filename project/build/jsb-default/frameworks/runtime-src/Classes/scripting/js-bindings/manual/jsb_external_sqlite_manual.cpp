@@ -37,10 +37,10 @@ static bool js_external_sqlite_DBSqlite_regsiterCallBack(se::State& s)
 
 					CC_UNUSED bool ok = true;
 					se::ValueArray args;
-					args.resize(1);
+					args.resize(3);
 					ok &= int32_to_seval(count, &args[0]);
-					ok &= std_vector_string_to_seval(value, &args[0]);
-					ok &= std_vector_string_to_seval(name, &args[0]);
+					ok &= std_vector_string_to_seval(value, &args[1]);
+					ok &= std_vector_string_to_seval(name, &args[2]);
 
 					se::Value rval;
 					se::Object* thisObj = jsThis.isObject() ? jsThis.toObject() : nullptr;
@@ -50,7 +50,7 @@ static bool js_external_sqlite_DBSqlite_regsiterCallBack(se::State& s)
 					if (!succeed) {
 						se::ScriptEngine::getInstance()->clearException();
 					}
-					return rval.toInt32();
+					return 0;// rval.toInt32();
 				};
 				arg0 = lambda;
 			}
