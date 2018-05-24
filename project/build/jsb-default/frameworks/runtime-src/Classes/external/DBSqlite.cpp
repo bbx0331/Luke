@@ -40,7 +40,7 @@ int DBSqlite::callFunction(void* para, int count, char** column_value, char** co
 	name.resize(count);
 	for (int i = 0; i < count; i++)
 	{
-		value[i] = column_name[i];
+		name[i] = column_name[i];
 	}
 
 	return m_pCallBack(count, value, name);;
