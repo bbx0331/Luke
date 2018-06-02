@@ -75,6 +75,10 @@ cc.Class({
         }
     },
 
+    onSearch (ptr, event) {
+        let a = cc.instance.DB.search(this.search.string, 20);
+    },
+
     onTrigger (ptr, type) {
         if (cc.instance.EventType.ENTER_WORD == type) {
             ptr.onActive(ptr, true);

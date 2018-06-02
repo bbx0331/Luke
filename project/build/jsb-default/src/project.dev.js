@@ -36,10 +36,15 @@ require = function() {
       },
       init: function init() {
         var realUrl = cc.url.raw("resources/data/db/luke.db");
+        db.DBSqlite.getInstance().initDB(realUrl);
         this.pDictionary = {};
+        this.sKey = "";
+        db.DBSqlite.getInstance().regsiterCallBack(function(count, value, name) {
+          cc.log(this.sKey);
+        }.bind(this));
         for (var i = 97; i < 123; ++i) {
-          var key = String.fromCharCode(i);
-          this.pDictionary[key] = {};
+          this.sKey = String.fromCharCode(i);
+          db.DBSqlite.getInstance().getDataCount("select * from " + this.sKey);
         }
       },
       filter: function filter() {}
