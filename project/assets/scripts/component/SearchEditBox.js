@@ -45,7 +45,7 @@ cc.Class({
         this.panelPosition = panel.getPosition();
         this.panelContentSize = panel.getContentSize();
 
-        cc.instance.ET.register(cc.instance.EventType.ENTER_WORD, this, this.onTrigger);
+        cc.ET.register(cc.EventType.ENTER_WORD, this, this.onTrigger);
     },
 
     start () {
@@ -76,11 +76,11 @@ cc.Class({
     },
 
     onSearch (ptr, event) {
-        let a = cc.instance.DB.search(this.search.string, 20);
+        cc.DB.search(this.search.string, 20);
     },
 
     onTrigger (ptr, type) {
-        if (cc.instance.EventType.ENTER_WORD == type) {
+        if (cc.EventType.ENTER_WORD == type) {
             ptr.onActive(ptr, true);
         }
     },

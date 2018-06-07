@@ -31,7 +31,6 @@ cc.Class({
             default: null,
             type: cc.Prefab
         },
-        itemCount: 0,
         scrollView: cc.ScrollView,
         bufferZone: 0,
     },
@@ -44,18 +43,22 @@ cc.Class({
         this.updateInterval = 0.2;
         this.lastContentPosY = 0; // use this variable to detect if we are scrolling up or down
         this.itemHeight = 0;
+        // 初始列表
         this.initList();
     },
 
     initList () {
-        for (let i = 0; i < this.itemCount; ++i) {
+        this.node.removeAllChildren();
+        let item = cc.instantiate(this.itemPrefab).getComponent('SearchItem');
+        this.itemHeight = item.node.height;
+        let count = Math.max(cc.CacheSearch.getWordCount(), Math.ceil(this.node.height / this.itemHeight));
+        for (let i = 0; i < count; ++i) {
             let item = cc.instantiate(this.itemPrefab).getComponent('SearchItem');
             this.node.addChild(item.node);
-            this.itemHeight = item.node.height;
-            item.updateItem(i, -this.itemHeight * (0.5 + i), "");
+            item.updateItem(i, -this.itemHeight * (0.5 + i));
             this.itemList.push(item);
         }
-        this.node.height = this.itemHeight * 100;
+        this.node.height = this.itemHeight * count;
     },
 
     start () {
@@ -78,12 +81,12 @@ cc.Class({
             if (isDown) {
                 // if away from buffer zone and not reaching top of content
                 if (viewPos.y < -buffer && item.node.y + offset < 0) {
-                    item.updateItem(item.index - length, item.node.y + offset, "");
+                    item.updateItem(item.index - length, item.node.y + offset);
                 }
             } else {
                 // if away from buffer zone and not reaching bottom of content
                 if (viewPos.y > buffer && item.node.y - offset > -this.node.height) {
-                    item.updateItem(item.index + length, item.node.y - offset, "");
+                    item.updateItem(item.index + length, item.node.y - offset);
                 }
             }
         }

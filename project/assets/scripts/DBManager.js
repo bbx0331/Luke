@@ -38,12 +38,15 @@ cc.Class({
         };
         expStr += '\\b';
 
+        let i = 1;
         for (let key in this.pDictionary[first]) {
             let exp = new RegExp(expStr);
-            cc.log(key.match(exp));
+            let unit = this.pDictionary[first][key.match(exp)];
+            if (null != unit)
+            {
+                cc.CacheSearch.pWordArray[i] = unit;
+            }
+            i = i + 1;
         }
-        
-        let array = {};
-        return 0;
     },
 });

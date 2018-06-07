@@ -71,6 +71,6 @@ cc.Class({
     },
 
     onClick () {
-        cc.instance.ET.onTrigger(cc.instance.EventType.ENTER_WORD);
+        cc.ET.onTrigger(cc.EventType.ENTER_WORD);
     },
 });

@@ -48,9 +48,9 @@ cc.Class({
 
     // update (dt) {},
 
-    updateItem (index, y, word) {
+    updateItem (index, y) {
         this.index = index;
         this.node.y = y;
-        this.label.string = word;
+        this.label.string = cc.CacheSearch.getWord(index);
     },
 });

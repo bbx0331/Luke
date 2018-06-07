@@ -9,18 +9,19 @@
 //  - [English] http://www.cocos2d-x.org/docs/editors_and_tools/creator-chapters/scripting/life-cycle-callbacks/index.html
 
 function initMgr () {
-    cc.instance = {};
+    //
+    cc.CacheSearch = require("CacheSearch");
 
-    cc.instance.EventType = require("EventType");
+    // 事件
+    cc.EventType = require("EventType");
 
     // 事件触发管理
-    cc.instance.ET = require("EventTrigger");
+    cc.ET = require("EventTrigger");
 
     // 本地数据管理
     var DBManager = require("DBManager");
-    let db = new DBManager();
-    cc.instance.DB = db;
-    db.init();
+    cc.DB = new DBManager();
+    cc.DB.init();
 }
 
 cc.Class({
@@ -63,7 +64,7 @@ cc.Class({
         this.historyListView.active = true;
         this.nodePosition = this.node.getPosition();
 
-        cc.instance.ET.register(cc.instance.EventType.ENTER_WORD, this, this.onTrigger);
+        cc.ET.register(cc.EventType.ENTER_WORD, this, this.onTrigger);
     },
 
     start () {
@@ -90,7 +91,7 @@ cc.Class({
         this.node.runAction(cc.moveTo(0.2, cc.p(this.nodePosition.x, posY)));
     },
 
-    onWord() {
+    onWord () {
         this.historyListView.active = false;
         this.searchListView.active = false;
         this.wordListView.active = true;
@@ -100,8 +101,8 @@ cc.Class({
         this.node.runAction(cc.moveTo(0.2, cc.p(this.nodePosition.x, posY)));
     },
 
-    onTrigger(ptr, type) {
-        if (cc.instance.EventType.ENTER_WORD == type) {
+    onTrigger (ptr, type) {
+        if (cc.EventType.ENTER_WORD == type) {
             ptr.onWord();
         }
     },
