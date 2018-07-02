@@ -2,6 +2,8 @@ LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
 
+LOCAL_SHORT_COMMANDS := true
+
 LOCAL_MODULE := cocos2djs_shared
 
 LOCAL_MODULE_FILENAME := libcocos2djs
@@ -12,9 +14,15 @@ endif
 
 LOCAL_SRC_FILES := hellojavascript/main.cpp \
 				   ../../../Classes/AppDelegate.cpp \
+				   ../../../Classes/external/sqlite3/sqlite3.c \
+				   ../../../Classes/external/sqlite3/DBSqlite.cpp \
+				   ../../../Classes/scripting/js-bindings/auto/jsb_external_sqlite_auto.cpp \
+				   ../../../Classes/scripting/js-bindings/manual/jsb_external_sqlite_manual.cpp \
 				   ../../../Classes/jsb_module_register.cpp \
 
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/../../../Classes
+LOCAL_C_INCLUDES := \
+$(LOCAL_PATH)/../../../Classes \
+$(LOCAL_PATH)/../../../Classes/external \
 
 ifeq ($(USE_ANY_SDK),1)				   
 LOCAL_SRC_FILES += ../../../Classes/anysdk/SDKManager.cpp \
