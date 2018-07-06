@@ -31,6 +31,7 @@ cc.Class({
             default: null,
             type: cc.Prefab
         },
+        itemCount: 0,
         scrollView: cc.ScrollView,
         bufferZone: 0,
     },
@@ -49,20 +50,19 @@ cc.Class({
 
     initList () {
         this.node.removeAllChildren();
-        let item = cc.instantiate(this.itemPrefab).getComponent('SearchItem');
-        this.itemHeight = item.node.height;
-        let count = Math.max(cc.CacheSearch.getWordCount(), Math.ceil(this.node.height / this.itemHeight));
-        for (let i = 0; i < count; ++i) {
+        for (let i = 0; i < this.itemCount; ++i) {
             let item = cc.instantiate(this.itemPrefab).getComponent('SearchItem');
+            this.itemHeight = item.node.height;
             this.node.addChild(item.node);
             item.updateItem(i, -this.itemHeight * (0.5 + i));
             this.itemList.push(item);
         }
-        this.node.height = this.itemHeight * count;
+        let maxCount = Math.max(cc.DB.getSearchWordCount(), this.itemCount);
+        this.node.height = this.itemHeight * maxCount;
     },
 
     start () {
-
+        cc.ET.register(cc.EventType.ET_SEARCH, this, this.onTrigger);
     },
 
     update (dt) {
@@ -99,4 +99,10 @@ cc.Class({
         let viewPos = this.scrollView.node.convertToNodeSpaceAR(worldPos);
         return viewPos;
     },
+
+    onTrigger (ptr, type) {
+        if (cc.EventType.ET_SEARCH == type) {
+            ptr.onLoad();
+        }
+    }
 });

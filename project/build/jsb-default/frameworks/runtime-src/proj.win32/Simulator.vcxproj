@@ -182,7 +182,7 @@ copy "$(ProjectDir)..\..\..\project.json" "$(OutDir)\" /Y</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\Classes\external\DBSqlite.cpp" />
+    <ClCompile Include="..\Classes\external\sqlite3\DBSqlite.cpp" />
     <ClCompile Include="..\Classes\jsb_module_register.cpp" />
     <ClCompile Include="..\Classes\scripting\js-bindings\auto\jsb_external_sqlite_auto.cpp" />
     <ClCompile Include="..\Classes\scripting\js-bindings\manual\jsb_external_sqlite_manual.cpp" />
@@ -190,7 +190,7 @@ copy "$(ProjectDir)..\..\..\project.json" "$(OutDir)\" /Y</Command>
     <ClCompile Include="..\Classes\AppDelegate.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\Classes\external\DBSqlite.h" />
+    <ClInclude Include="..\Classes\external\sqlite3\DBSqlite.h" />
     <ClInclude Include="..\Classes\scripting\js-bindings\auto\jsb_external_sqlite_auto.hpp" />
     <ClInclude Include="..\Classes\scripting\js-bindings\manual\jsb_external_sqlite_manual.hpp" />
     <ClInclude Include="main.h" />

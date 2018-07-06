@@ -1,9 +1,10 @@
 
 var EventType = cc.Class({
     statics: {
-        ENTER_WORD: 1,
-        EXIT_WORD: 2,
-        ENTER_HISTORY: 3,
-        EXIT_HISTORY: 4,
+        ET_HISTORY: 1,
+        ET_SEARCH: 2,
+        ET_HISTORY_WORD: 3,
+        ET_SEARCH_WORD: 4,
+        ET_EXIT: 5,
     },
 });

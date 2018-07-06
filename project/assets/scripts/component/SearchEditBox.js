@@ -45,7 +45,8 @@ cc.Class({
         this.panelPosition = panel.getPosition();
         this.panelContentSize = panel.getContentSize();
 
-        cc.ET.register(cc.EventType.ENTER_WORD, this, this.onTrigger);
+        cc.ET.register(cc.EventType.ET_HISTORY_WORD, this, this.onTrigger);
+        cc.ET.register(cc.EventType.ET_EXIT, this, this.onTrigger);
     },
 
     start () {
@@ -76,12 +77,16 @@ cc.Class({
     },
 
     onSearch (ptr, event) {
-        cc.DB.search(this.search.string, 20);
+        cc.DB.search(this.search.string, 50);
+        cc.ET.onTrigger(cc.EventType.ET_SEARCH);
     },
 
     onTrigger (ptr, type) {
-        if (cc.EventType.ENTER_WORD == type) {
-            ptr.onActive(ptr, true);
+        if (cc.EventType.ET_EXIT == type) {
+            ptr.onActive(ptr, 0);
+        }
+        else if (cc.EventType.ET_HISTORY_WORD == type) {
+            ptr.onActive(ptr, 1);
         }
     },
 });

@@ -28,26 +28,105 @@ require = function() {
     "use strict";
     cc._RF.push(module, "1532a9McLpNmIFJ/tIEU01s", "DBManager");
     "use strict";
-    cc.Class({
-      extends: cc.Component,
-      properties: {
-        pDictionary: Map,
-        pWordArray: Array
-      },
-      init: function init() {
-        var realUrl = cc.url.raw("resources/data/db/luke.db");
-        db.DBSqlite.getInstance().initDB(realUrl);
-        this.pDictionary = {};
-        this.sKey = "";
-        db.DBSqlite.getInstance().regsiterCallBack(function(count, value, name) {
-          cc.log(this.sKey);
-        }.bind(this));
-        for (var i = 97; i < 123; ++i) {
-          this.sKey = String.fromCharCode(i);
-          db.DBSqlite.getInstance().getDataCount("select * from " + this.sKey);
+    var DBManager = cc.Class({
+      statics: {
+        sKey: "",
+        pDictionary: {},
+        pHistoryArray: [],
+        pSearchArray: [],
+        pSearchContentArray: [],
+        iHistoryIndex: 0,
+        iSearchIndex: 0,
+        getHistoryWord: function getHistoryWord(index) {
+          return this.pHistoryArray[index] || "";
+        },
+        getSelectHistoryWord: function getSelectHistoryWord() {
+          return this.pHistoryArray[this.iHistoryIndex] || "";
+        },
+        getHistoryWordCount: function getHistoryWordCount() {
+          return this.pHistoryArray.lenght || 10;
+        },
+        getSelectHistoryWordContent: function getSelectHistoryWordContent() {
+          var word = this.pHistoryArray[this.iHistoryIndex];
+          var first = word.substr(0, 1);
+          return this.pDictionary[first][word];
+        },
+        getSearchWord: function getSearchWord(index) {
+          return this.pSearchArray[index] || "";
+        },
+        getSelectSearchWord: function getSelectSearchWord() {
+          return this.pSearchArray[this.iSearchIndex] || "";
+        },
+        getSearchWordCount: function getSearchWordCount() {
+          return this.pSearchArray.lenght || 15;
+        },
+        getSelectSearchWordContent: function getSelectSearchWordContent() {
+          return this.pSearchContentArray[this.iSearchIndex];
+        },
+        init: function init() {
+          var realUrl = cc.url.raw("resources/data/db/luke.db");
+          if (cc.sys.os == cc.sys.OS_ANDROID) {
+            var sqliteData = jsb.fileUtils.getDataFromFile(realUrl);
+            realUrl = jsb.fileUtils.getWritablePath() + "resources\\data\\db\\";
+            jsb.fileUtils.createDirectory(realUrl);
+            realUrl += "luke.db";
+            if (!jsb.fileUtils.writeDataToFile(sqliteData, realUrl)) {
+              cc.log("Write Data To File Failure !");
+              cc.director.end();
+            }
+          }
+          cc.log("DB path : " + realUrl);
+          db.DBSqlite.getInstance().initDB(realUrl);
+          this.pDictionary = {};
+          this.sKey = "";
+          db.DBSqlite.getInstance().regsiterCallBack(function(count, value, name) {
+            this.pDictionary[this.sKey] = this.pDictionary[this.sKey] || {};
+            this.pDictionary[this.sKey][value[0]] = this.pDictionary[this.sKey][value[0]] || {};
+            for (var i = 1; i < count; ++i) this.pDictionary[this.sKey][value[0]][name[i]] = value[i];
+          }.bind(this));
+          for (var i = 97; i < 123; ++i) {
+            this.sKey = String.fromCharCode(i);
+            db.DBSqlite.getInstance().getDataCount("select * from " + this.sKey);
+          }
+          db.DBSqlite.getInstance().regsiterCallBack(function(count, value, name) {
+            this.pHistoryArray.push(value[0]);
+          }.bind(this));
+          db.DBSqlite.getInstance().createTable("create table _history(word text);", "_history");
+          db.DBSqlite.getInstance().getDataCount("select * from _history");
+        },
+        search: function search(word, count) {
+          if ("" == word) return;
+          this.pSearchArray = [];
+          this.pSearchContentArray = [];
+          var first = word.substr(0, 1);
+          var expStr = "\\b" + first + ".*?";
+          for (var _i = 1; _i < word.length; _i++) expStr += word.substr(_i, 1) + ".*?";
+          expStr += "\\b";
+          var i = 0;
+          for (var key in this.pDictionary[first]) {
+            var exp = new RegExp(expStr);
+            var unit = this.pDictionary[first][key.match(exp)];
+            if (null != unit) {
+              this.pSearchArray.push(key);
+              this.pSearchContentArray.push(unit);
+              i += 1;
+              if (i >= count) break;
+            }
+          }
+        },
+        review: function review(word) {
+          for (var i = 0; i < this.pHistoryArray.length; i++) if (this.pHistoryArray[i] == word) {
+            cc.log("The Word [" + word + "] is in the History !");
+            return;
+          }
+          if (this.pHistoryArray.length >= 10) {
+            db.DBSqlite.getInstance().deleteData("delete from _history where word = '" + this.pHistoryArray[1] + "'");
+            this.pHistoryArray.splice(0, 1);
+          }
+          this.pHistoryArray.push(word);
+          db.DBSqlite.getInstance().insertData("insert into _history values ('" + word + "')");
         }
-      },
-      filter: function filter() {}
+      }
     });
     cc._RF.pop();
   }, {} ],
@@ -94,10 +173,11 @@ require = function() {
     "use strict";
     var EventType = cc.Class({
       statics: {
-        ENTER_WORD: 1,
-        EXIT_WORD: 2,
-        ENTER_HISTORY: 3,
-        EXIT_HISTORY: 4
+        ET_HISTORY: 1,
+        ET_SEARCH: 2,
+        ET_HISTORY_WORD: 3,
+        ET_SEARCH_WORD: 4,
+        ET_EXIT: 5
       }
     });
     cc._RF.pop();
@@ -125,10 +205,10 @@ require = function() {
         this.button.node.on(cc.Node.EventType.TOUCH_CANCEL, this.onClickCancel, this);
       },
       start: function start() {},
-      updateItem: function updateItem(index, y, word) {
+      updateItem: function updateItem(index, y) {
         this.index = index;
         this.node.y = y;
-        this.label.string = word;
+        this.label.string = cc.DB.getHistoryWord(index);
       },
       onClickBegin: function onClickBegin() {
         this.label.node.color = new cc.Color(255, 255, 255, 255);
@@ -140,7 +220,10 @@ require = function() {
         this.label.node.color = new cc.Color(52, 122, 247, 255);
       },
       onClick: function onClick() {
-        cc.instance.ET.onTrigger(cc.instance.EventType.ENTER_WORD);
+        if (cc.DB.getHistoryWord(this.index).length > 0) {
+          cc.DB.iHistoryIndex = this.index;
+          cc.ET.onTrigger(cc.EventType.ET_HISTORY_WORD);
+        }
       }
     });
     cc._RF.pop();
@@ -169,16 +252,20 @@ require = function() {
         this.initList();
       },
       initList: function initList() {
+        this.node.removeAllChildren();
         for (var i = 0; i < this.itemCount; ++i) {
           var item = cc.instantiate(this.itemPrefab).getComponent("HistoryItem");
-          this.node.addChild(item.node);
           this.itemHeight = item.node.height;
-          item.updateItem(i, -this.itemHeight * (.5 + i), "测试");
+          this.node.addChild(item.node);
+          item.updateItem(i, -this.itemHeight * (.5 + i));
           this.itemList.push(item);
         }
-        this.node.height = 100 * this.itemHeight;
+        var maxCount = Math.max(cc.DB.getHistoryWordCount(), this.itemCount);
+        this.node.height = this.itemHeight * maxCount;
       },
-      start: function start() {},
+      start: function start() {
+        cc.ET.register(cc.EventType.ET_HISTORY, this, this.onTrigger);
+      },
       update: function update(dt) {
         this.updateTimer += dt;
         if (this.updateTimer < this.updateInterval) return;
@@ -190,7 +277,7 @@ require = function() {
         for (var i = 0; i < length; ++i) {
           var item = this.itemList[i];
           var viewPos = this.getPositionInView(item.node);
-          isDown ? viewPos.y < -buffer && item.node.y + offset < 0 && item.updateItem(item.index - length, item.node.y + offset, "测试") : viewPos.y > buffer && item.node.y - offset > -this.node.height && item.updateItem(item.index + length, item.node.y - offset, "测试");
+          isDown ? viewPos.y < -buffer && item.node.y + offset < 0 && item.updateItem(item.index - length, item.node.y + offset) : viewPos.y > buffer && item.node.y - offset > -this.node.height && item.updateItem(item.index + length, item.node.y - offset);
         }
         this.lastContentPosY = this.node.y;
       },
@@ -198,6 +285,9 @@ require = function() {
         var worldPos = item.parent.convertToWorldSpaceAR(item.position);
         var viewPos = this.scrollView.node.convertToNodeSpaceAR(worldPos);
         return viewPos;
+      },
+      onTrigger: function onTrigger(ptr, type) {
+        cc.EventType.ET_HISTORY == type && ptr.onLoad();
       }
     });
     cc._RF.pop();
@@ -207,13 +297,10 @@ require = function() {
     cc._RF.push(module, "2ec15OZlO1EGLgReUeDjk3S", "LukeScript");
     "use strict";
     function initMgr() {
-      cc.instance = {};
-      cc.instance.EventType = require("EventType");
-      cc.instance.ET = require("EventTrigger");
-      var DBManager = require("DBManager");
-      var db = new DBManager();
-      cc.instance.DB = db;
-      db.init();
+      cc.EventType = require("EventType");
+      cc.ET = require("EventTrigger");
+      cc.DB = require("DBManager");
+      cc.DB.init();
     }
     cc.Class({
       extends: cc.Component,
@@ -233,9 +320,11 @@ require = function() {
       },
       onLoad: function onLoad() {
         initMgr();
+        this.eventType = cc.EventType.ET_EXIT;
         this.historyListView.active = true;
         this.nodePosition = this.node.getPosition();
-        cc.instance.ET.register(cc.instance.EventType.ENTER_WORD, this, this.onTrigger);
+        cc.ET.register(cc.EventType.ET_HISTORY_WORD, this, this.onTrigger);
+        cc.ET.register(cc.EventType.ET_SEARCH_WORD, this, this.onTrigger);
       },
       start: function start() {},
       onHistory: function onHistory() {
@@ -260,8 +349,17 @@ require = function() {
         var posY = this.nodePosition.y + title.getContentSize().height;
         this.node.runAction(cc.moveTo(.2, cc.p(this.nodePosition.x, posY)));
       },
+      onCancel: function onCancel() {
+        if (cc.EventType.ET_SEARCH_WORD == this.eventType) this.onSearch(); else {
+          this.onHistory();
+          cc.ET.onTrigger(cc.EventType.ET_HISTORY);
+          cc.ET.onTrigger(cc.EventType.ET_EXIT);
+        }
+        this.eventType = cc.EventType.ET_EXIT;
+      },
       onTrigger: function onTrigger(ptr, type) {
-        cc.instance.EventType.ENTER_WORD == type && ptr.onWord();
+        cc.EventType.ET_HISTORY_WORD != type && cc.EventType.ET_SEARCH_WORD != type || ptr.onWord();
+        ptr.eventType = type;
       }
     });
     cc._RF.pop();
@@ -291,7 +389,8 @@ require = function() {
         var panel = this.node.getChildByName("PanelSprite");
         this.panelPosition = panel.getPosition();
         this.panelContentSize = panel.getContentSize();
-        cc.instance.ET.register(cc.instance.EventType.ENTER_WORD, this, this.onTrigger);
+        cc.ET.register(cc.EventType.ET_HISTORY_WORD, this, this.onTrigger);
+        cc.ET.register(cc.EventType.ET_EXIT, this, this.onTrigger);
       },
       start: function start() {},
       onActive: function onActive(ptr, event) {
@@ -307,8 +406,12 @@ require = function() {
           panel.setContentSize(this.panelContentSize);
         }
       },
+      onSearch: function onSearch(ptr, event) {
+        cc.DB.search(this.search.string, 50);
+        cc.ET.onTrigger(cc.EventType.ET_SEARCH);
+      },
       onTrigger: function onTrigger(ptr, type) {
-        cc.instance.EventType.ENTER_WORD == type && ptr.onActive(ptr, true);
+        cc.EventType.ET_EXIT == type ? ptr.onActive(ptr, 0) : cc.EventType.ET_HISTORY_WORD == type && ptr.onActive(ptr, 1);
       }
     });
     cc._RF.pop();
@@ -330,11 +433,31 @@ require = function() {
         },
         index: 0
       },
+      onLoad: function onLoad() {
+        this.button.node.on(cc.Node.EventType.TOUCH_START, this.onClickBegin, this);
+        this.button.node.on(cc.Node.EventType.TOUCH_END, this.onClickEnd, this);
+        this.button.node.on(cc.Node.EventType.TOUCH_CANCEL, this.onClickCancel, this);
+      },
       start: function start() {},
-      updateItem: function updateItem(index, y, word) {
+      updateItem: function updateItem(index, y) {
         this.index = index;
         this.node.y = y;
-        this.label.string = word;
+        this.label.string = cc.DB.getSearchWord(index);
+      },
+      onClickBegin: function onClickBegin() {
+        this.label.node.color = new cc.Color(255, 255, 255, 255);
+      },
+      onClickEnd: function onClickEnd() {
+        this.label.node.color = new cc.Color(52, 122, 247, 255);
+      },
+      onClickCancel: function onClickCancel() {
+        this.label.node.color = new cc.Color(52, 122, 247, 255);
+      },
+      onClick: function onClick() {
+        if (cc.DB.getSearchWord(this.index).length > 0) {
+          cc.DB.iSearchIndex = this.index;
+          cc.ET.onTrigger(cc.EventType.ET_SEARCH_WORD);
+        }
       }
     });
     cc._RF.pop();
@@ -363,16 +486,20 @@ require = function() {
         this.initList();
       },
       initList: function initList() {
+        this.node.removeAllChildren();
         for (var i = 0; i < this.itemCount; ++i) {
           var item = cc.instantiate(this.itemPrefab).getComponent("SearchItem");
-          this.node.addChild(item.node);
           this.itemHeight = item.node.height;
-          item.updateItem(i, -this.itemHeight * (.5 + i), "");
+          this.node.addChild(item.node);
+          item.updateItem(i, -this.itemHeight * (.5 + i));
           this.itemList.push(item);
         }
-        this.node.height = 100 * this.itemHeight;
+        var maxCount = Math.max(cc.DB.getSearchWordCount(), this.itemCount);
+        this.node.height = this.itemHeight * maxCount;
       },
-      start: function start() {},
+      start: function start() {
+        cc.ET.register(cc.EventType.ET_SEARCH, this, this.onTrigger);
+      },
       update: function update(dt) {
         this.updateTimer += dt;
         if (this.updateTimer < this.updateInterval) return;
@@ -384,7 +511,7 @@ require = function() {
         for (var i = 0; i < length; ++i) {
           var item = this.itemList[i];
           var viewPos = this.getPositionInView(item.node);
-          isDown ? viewPos.y < -buffer && item.node.y + offset < 0 && item.updateItem(item.index - length, item.node.y + offset, "") : viewPos.y > buffer && item.node.y - offset > -this.node.height && item.updateItem(item.index + length, item.node.y - offset, "");
+          isDown ? viewPos.y < -buffer && item.node.y + offset < 0 && item.updateItem(item.index - length, item.node.y + offset) : viewPos.y > buffer && item.node.y - offset > -this.node.height && item.updateItem(item.index + length, item.node.y - offset);
         }
         this.lastContentPosY = this.node.y;
       },
@@ -392,8 +519,79 @@ require = function() {
         var worldPos = item.parent.convertToWorldSpaceAR(item.position);
         var viewPos = this.scrollView.node.convertToNodeSpaceAR(worldPos);
         return viewPos;
+      },
+      onTrigger: function onTrigger(ptr, type) {
+        cc.EventType.ET_SEARCH == type && ptr.onLoad();
+      }
+    });
+    cc._RF.pop();
+  }, {} ],
+  WordListView: [ function(require, module, exports) {
+    "use strict";
+    cc._RF.push(module, "20e38NDSIZD9pVYXb9HDnwD", "WordListView");
+    "use strict";
+    cc.Class({
+      extends: cc.Component,
+      properties: {
+        label1: {
+          default: null,
+          type: cc.Label
+        },
+        label2: {
+          default: null,
+          type: cc.Label
+        },
+        label3: {
+          default: null,
+          type: cc.Label
+        },
+        label4: {
+          default: null,
+          type: cc.Label
+        },
+        label5: {
+          default: null,
+          type: cc.Label
+        },
+        label6: {
+          default: null,
+          type: cc.Label
+        },
+        label7: {
+          default: null,
+          type: cc.Label
+        },
+        label8: {
+          default: null,
+          type: cc.Label
+        }
+      },
+      onLoad: function onLoad() {
+        cc.ET.register(cc.EventType.ET_HISTORY_WORD, this, this.onTrigger);
+        cc.ET.register(cc.EventType.ET_SEARCH_WORD, this, this.onTrigger);
+      },
+      start: function start() {},
+      onTrigger: function onTrigger(ptr, type) {
+        if (cc.EventType.ET_SEARCH_WORD == type) {
+          var word = cc.DB.getSelectSearchWord();
+          ptr.label1.string = word;
+          cc.DB.review(word);
+          var content = cc.DB.getSelectSearchWordContent();
+          ptr.label2.string = content["phonogram"];
+          ptr.label4.string = content["notes"];
+          ptr.label6.string = content["luke"];
+          ptr.label8.string = content["detail"];
+        } else if (cc.EventType.ET_HISTORY_WORD == type) {
+          ptr.label1.string = cc.DB.getSelectHistoryWord();
+          var _content = cc.DB.getSelectHistoryWordContent();
+          ptr.label2.string = _content["phonogram"];
+          ptr.label4.string = _content["notes"];
+          ptr.label6.string = _content["luke"];
+          ptr.label8.string = _content["detail"];
+        }
       }
     });
     cc._RF.pop();
   }, {} ]
-}, {}, [ "DBManager", "EventTrigger", "EventType", "HistoryItem", "HistoryListView", "LukeScript", "SearchEditBox", "SearchItem", "SearchListView" ]);
+}, {}, [ "DBManager", "EventTrigger", "EventType", "HistoryItem", "HistoryListView", "LukeScript", "SearchEditBox", "SearchItem", "SearchListView", "WordListView" ]);
+//# sourceMappingURL=project.dev.js.map

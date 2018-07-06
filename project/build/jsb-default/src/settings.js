@@ -1,5 +1,5 @@
 window._CCSettings = {
-    platform: "win32",
+    platform: "android",
     groupList: [
         "default"
     ],
@@ -75,17 +75,6 @@ window._CCSettings = {
         }
     ],
     packedAssets: {
-        "040e0ae1e": [
-            "29FYIk+N1GYaeWH/q1NxQO",
-            "3dx6Xt7ilInYSbg9ODcsFG",
-            "5cO7kybDxGj4ipyMYdRYZB",
-            "5f5dyqtRNNxaFmVzYns6FZ",
-            "675ovJ2tVK2aLYfgPUWOMv",
-            "9bvaMerUlDyary99mJa6xp",
-            "a0bu+f4H1PBr3ND1rLRUmt",
-            "a2MjXRFdtLlYQ5ouAFv/+R",
-            "e97GVMl6JHh5Ml5qEDdSGa"
-        ],
         "0421e4c90": [
             "0727zz8PRC9boS+M8r0h49",
             "a2MjXRFdtLlYQ5ouAFv/+R"
@@ -93,6 +82,16 @@ window._CCSettings = {
         "065e89b02": [
             "16V495N4dAN7z4tDjEy9pA",
             "a2MjXRFdtLlYQ5ouAFv/+R"
+        ],
+        "0922a4783": [
+            "29FYIk+N1GYaeWH/q1NxQO",
+            "5cO7kybDxGj4ipyMYdRYZB",
+            "5f5dyqtRNNxaFmVzYns6FZ",
+            "675ovJ2tVK2aLYfgPUWOMv",
+            "9bvaMerUlDyary99mJa6xp",
+            "a0bu+f4H1PBr3ND1rLRUmt",
+            "a2MjXRFdtLlYQ5ouAFv/+R",
+            "e97GVMl6JHh5Ml5qEDdSGa"
         ]
     },
     orientation: "",

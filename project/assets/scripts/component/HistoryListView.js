@@ -48,18 +48,20 @@ cc.Class({
     },
 
     initList () {
+        this.node.removeAllChildren();
         for (let i = 0; i < this.itemCount; ++i) {
             let item = cc.instantiate(this.itemPrefab).getComponent('HistoryItem');
-            this.node.addChild(item.node);
             this.itemHeight = item.node.height;
-            item.updateItem(i, -this.itemHeight * (0.5 + i), "测试");
+            this.node.addChild(item.node);
+            item.updateItem(i, -this.itemHeight * (0.5 + i));
             this.itemList.push(item);
         }
-        this.node.height = this.itemHeight * 100;
+        let maxCount = Math.max(cc.DB.getHistoryWordCount(), this.itemCount);
+        this.node.height = this.itemHeight * maxCount;
     },
 
     start () {
-
+        cc.ET.register(cc.EventType.ET_HISTORY, this, this.onTrigger);
     },
 
     update (dt) {
@@ -78,12 +80,12 @@ cc.Class({
             if (isDown) {
                 // if away from buffer zone and not reaching top of content
                 if (viewPos.y < -buffer && item.node.y + offset < 0) {
-                    item.updateItem(item.index - length, item.node.y + offset, "测试");
+                    item.updateItem(item.index - length, item.node.y + offset);
                 }
             } else {
                 // if away from buffer zone and not reaching bottom of content
                 if (viewPos.y > buffer && item.node.y - offset > -this.node.height) {
-                    item.updateItem(item.index + length, item.node.y - offset, "测试");
+                    item.updateItem(item.index + length, item.node.y - offset);
                 }
             }
         }
@@ -96,4 +98,10 @@ cc.Class({
         let viewPos = this.scrollView.node.convertToNodeSpaceAR(worldPos);
         return viewPos;
     },
+
+    onTrigger (ptr, type) {
+        if (cc.EventType.ET_HISTORY == type) {
+            ptr.onLoad();
+        }
+    }
 });

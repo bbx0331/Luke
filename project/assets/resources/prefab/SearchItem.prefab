@@ -346,9 +346,9 @@
     "transition": 1,
     "pressedColor": {
       "__type__": "cc.Color",
-      "r": 250,
-      "g": 250,
-      "b": 250,
+      "r": 52,
+      "g": 122,
+      "b": 247,
       "a": 255
     },
     "hoverColor": {
@@ -360,8 +360,6 @@
     },
     "duration": 0.1,
     "zoomScale": 1.2,
-    "pressedSprite": null,
-    "hoverSprite": null,
     "clickEvents": [
       {
         "__id__": 11
@@ -384,6 +382,10 @@
       "a": 255
     },
     "_N$normalSprite": null,
+    "_N$pressedSprite": null,
+    "pressedSprite": null,
+    "_N$hoverSprite": null,
+    "hoverSprite": null,
     "_N$disabledSprite": null,
     "_N$target": {
       "__id__": 2
@@ -394,7 +396,7 @@
     "target": {
       "__id__": 1
     },
-    "component": "HistoryItem",
+    "component": "SearchItem",
     "handler": "onClick",
     "customEventData": ""
   },
@@ -426,7 +428,9 @@
       "__id__": 1
     },
     "_enabled": true,
-    "button": null,
+    "button": {
+      "__id__": 10
+    },
     "label": {
       "__id__": 7
     },

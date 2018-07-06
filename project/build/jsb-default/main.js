@@ -169,7 +169,7 @@
 
         // anysdk scripts
         if (cc.sys.isNative && cc.sys.isMobile) {
-            jsList = jsList.concat(['src/anysdk/jsb_anysdk.js', 'src/anysdk/jsb_anysdk_constants.js']);
+//            jsList = jsList.concat(['src/anysdk/jsb_anysdk.js', 'src/anysdk/jsb_anysdk_constants.js']);
         }
 
         var option = {

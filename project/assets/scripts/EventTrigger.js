@@ -1,6 +1,6 @@
 
 var Listener = cc.Class({
-    properties: {
+    properties : {
         ptr: null,
         fnc: null,
     },
@@ -10,7 +10,7 @@ var EventTrigger = cc.Class({
     statics: {
         pListenerPool: {},
         
-        register: function(type, ptr, fnc) {
+        register (type, ptr, fnc) {
             this.pListenerPool[type] = this.pListenerPool[type] || [];
             let len = this.pListenerPool[type].length;
             let listener = new Listener();
@@ -19,7 +19,7 @@ var EventTrigger = cc.Class({
             this.pListenerPool[type][len] = listener;
         },
     
-        unregister: function(type, ptr) {
+        unregister (type, ptr) {
             for (let i = 0; i < this.pListenerPool[type].length;) {
                 if (ptr == this.pListenerPool[type][i].ptr) {
                     this.pListenerPool[type][i] = null;
@@ -31,7 +31,7 @@ var EventTrigger = cc.Class({
             }
         },
     
-        onTrigger: function(type) {
+        onTrigger (type) {
             if (this.pListenerPool[type]) {
                 for (let i = 0; i < this.pListenerPool[type].length; ++i) {
                     let listener = this.pListenerPool[type][i];

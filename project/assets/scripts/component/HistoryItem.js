@@ -52,10 +52,10 @@ cc.Class({
 
     // update (dt) {},
 
-    updateItem (index, y, word) {
+    updateItem (index, y) {
         this.index = index;
         this.node.y = y;
-        this.label.string = word;
+        this.label.string = cc.DB.getHistoryWord(index);;
     },
 
     onClickBegin () {
@@ -71,6 +71,9 @@ cc.Class({
     },
 
     onClick () {
-        cc.ET.onTrigger(cc.EventType.ENTER_WORD);
+        if (cc.DB.getHistoryWord(this.index).length > 0) {
+            cc.DB.iHistoryIndex = this.index;
+            cc.ET.onTrigger(cc.EventType.ET_HISTORY_WORD);
+        }
     },
 });

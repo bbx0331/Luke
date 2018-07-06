@@ -26,6 +26,9 @@
     <Filter Include="Classes\scripting\js-bindings\manual">
       <UniqueIdentifier>{95122558-7fbc-4528-9e13-a3475ebf8e12}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Classes\external\sqlite3">
+      <UniqueIdentifier>{7ed594b7-450d-481a-831d-b00fb6463587}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -37,14 +40,14 @@
     <ClCompile Include="..\Classes\jsb_module_register.cpp">
       <Filter>Classes</Filter>
     </ClCompile>
-    <ClCompile Include="..\Classes\external\DBSqlite.cpp">
-      <Filter>Classes\external</Filter>
-    </ClCompile>
     <ClCompile Include="..\Classes\scripting\js-bindings\auto\jsb_external_sqlite_auto.cpp">
       <Filter>Classes\scripting\js-bindings\auto</Filter>
     </ClCompile>
     <ClCompile Include="..\Classes\scripting\js-bindings\manual\jsb_external_sqlite_manual.cpp">
       <Filter>Classes\scripting\js-bindings\manual</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Classes\external\sqlite3\DBSqlite.cpp">
+      <Filter>Classes\external\sqlite3</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -55,14 +58,14 @@
       <Filter>win32</Filter>
     </ClInclude>
     <ClInclude Include="resource.h" />
-    <ClInclude Include="..\Classes\external\DBSqlite.h">
-      <Filter>Classes\external</Filter>
-    </ClInclude>
     <ClInclude Include="..\Classes\scripting\js-bindings\auto\jsb_external_sqlite_auto.hpp">
       <Filter>Classes\scripting\js-bindings\auto</Filter>
     </ClInclude>
     <ClInclude Include="..\Classes\scripting\js-bindings\manual\jsb_external_sqlite_manual.hpp">
       <Filter>Classes\scripting\js-bindings\manual</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Classes\external\sqlite3\DBSqlite.h">
+      <Filter>Classes\external\sqlite3</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

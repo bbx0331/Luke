@@ -40,10 +40,14 @@ cc.Class({
 
     // LIFE-CYCLE CALLBACKS:
 
-    // onLoad () {},
+    onLoad () {
+        this.button.node.on(cc.Node.EventType.TOUCH_START, this.onClickBegin, this);
+        this.button.node.on(cc.Node.EventType.TOUCH_END, this.onClickEnd, this);
+        this.button.node.on(cc.Node.EventType.TOUCH_CANCEL, this.onClickCancel, this);
+    },
 
     start () {
-
+        
     },
 
     // update (dt) {},
@@ -51,6 +55,25 @@ cc.Class({
     updateItem (index, y) {
         this.index = index;
         this.node.y = y;
-        this.label.string = cc.CacheSearch.getWord(index);
+        this.label.string = cc.DB.getSearchWord(index);
+    },
+
+    onClickBegin () {
+        this.label.node.color = new cc.Color(255, 255, 255, 255);
+    },
+
+    onClickEnd () {
+        this.label.node.color = new cc.Color(52, 122, 247, 255);
+    },
+
+    onClickCancel () {
+        this.label.node.color = new cc.Color(52, 122, 247, 255);
+    },
+
+    onClick () {
+        if (cc.DB.getSearchWord(this.index).length > 0) {
+            cc.DB.iSearchIndex = this.index;
+            cc.ET.onTrigger(cc.EventType.ET_SEARCH_WORD);
+        }
     },
 });

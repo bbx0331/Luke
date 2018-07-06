@@ -4643,8 +4643,7 @@
           this._pausedFlag = false;
         },
         onEnable: function() {
-          this.playOnLoad && this.play();
-          if (this.preload) {
+          if (this.playOnLoad) this.play(); else if (this.preload) {
             this.audio.src = this._clip;
             this.audio.preload();
           }
@@ -8098,8 +8097,8 @@
             }
           }
           reachedEnd && (this._autoScrolling = false);
-          var contentPos = cc.pSub(newPosition, this.getContentPosition());
-          this._moveContent(contentPos, reachedEnd);
+          var deltaMove = cc.pSub(newPosition, this.getContentPosition());
+          this._moveContent(this._clampDelta(deltaMove), reachedEnd);
           this._dispatchEvent("scrolling");
           if (!this._autoScrolling) {
             this._isBouncing = false;
@@ -8522,7 +8521,10 @@
               spriteFrame.once("load", this._onTextureLoaded, this);
               spriteFrame.ensureLoadTexture();
             }
-          } else sgNode.setVisible(false);
+          } else {
+            sgNode.setSpriteFrame(null);
+            sgNode.setVisible(false);
+          }
           false;
         },
         _createSgNode: function() {
@@ -9696,6 +9698,7 @@
         capturingListeners && flag & CAPTURING_FLAG && capturingListeners.invoke(event);
         var bubblingListeners = this._bubblingListeners;
         bubblingListeners && flag & BUBBLING_FLAG && !event._propagationImmediateStopped && bubblingListeners.invoke(event);
+        event.detail = null;
         cc.Event.EventCustom.put(event);
       };
       proto._isTargetActive = function(type) {
@@ -13861,11 +13864,14 @@
       };
       false;
       var env;
+      var system;
       var version;
       var w;
       var h;
       var ratio;
       false;
+      var env;
+      var version;
       var w;
       var h;
       var ratio;
@@ -19836,8 +19842,8 @@
         FILLED: 3
       });
       cc.Scale9Sprite.FillType = cc.Enum({
-        Horizontal: 0,
-        Vertical: 1,
+        HORIZONTAL: 0,
+        VERTICAL: 1,
         RADIAL: 2
       });
       var s9sPrototype = cc.Scale9Sprite.prototype;
