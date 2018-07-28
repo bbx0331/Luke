@@ -45,7 +45,9 @@ cc.Class({
         this.panelPosition = panel.getPosition();
         this.panelContentSize = panel.getContentSize();
 
+        cc.ET.register(cc.EventType.ET_LINK, this, this.onTrigger);
         cc.ET.register(cc.EventType.ET_HISTORY_WORD, this, this.onTrigger);
+        cc.ET.register(cc.EventType.ET_BACK, this, this.onTrigger);
         cc.ET.register(cc.EventType.ET_EXIT, this, this.onTrigger);
     },
 
@@ -63,6 +65,9 @@ cc.Class({
         }
         else {
             this.cancel.node.active = flag;
+            if (2 == event) {
+                cc.ET.onTrigger(cc.EventType.ET_SEARCH);
+            }
         }
 
         let panel = this.node.getChildByName("PanelSprite");
@@ -77,16 +82,27 @@ cc.Class({
     },
 
     onSearch (ptr, event) {
-        cc.DB.search(this.search.string, 50);
-        cc.ET.onTrigger(cc.EventType.ET_SEARCH);
+        if (this.search.string.length > 0) {
+            cc.DB.search(this.search.string, 50);
+            cc.ET.onTrigger(cc.EventType.ET_SEARCH);
+        }
     },
 
     onTrigger (ptr, type) {
-        if (cc.EventType.ET_EXIT == type) {
-            ptr.onActive(ptr, 0);
+        if (cc.EventType.ET_LINK == type) {
+            let lable = ptr.node.getChildByName("CancelButton").getChildByName("Label")._components[0];
+            lable.string = "返回";
         }
         else if (cc.EventType.ET_HISTORY_WORD == type) {
             ptr.onActive(ptr, 1);
+        }
+        else if (cc.EventType.ET_BACK == type) {
+            cc.log("cc.EventType.ET_BACK");
+            let lable = ptr.node.getChildByName("CancelButton").getChildByName("Label")._components[0];
+            lable.string = "取消";
+        }
+        else if (cc.EventType.ET_EXIT == type) {
+            ptr.onActive(ptr, 0);
         }
     },
 });

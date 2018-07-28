@@ -61,6 +61,7 @@ cc.Class({
         this.historyListView.active = true;
         this.nodePosition = this.node.getPosition();
 
+        cc.ET.register(cc.EventType.ET_SEARCH, this, this.onTrigger);
         cc.ET.register(cc.EventType.ET_HISTORY_WORD, this, this.onTrigger);
         cc.ET.register(cc.EventType.ET_SEARCH_WORD, this, this.onTrigger);
     },
@@ -72,50 +73,88 @@ cc.Class({
     // update (dt) {},
     
     onHistory () {
+        this.node.stopAllActions();
+        this.node.runAction(cc.moveTo(0.2, cc.p(this.nodePosition.x, this.nodePosition.y)));
+
         this.historyListView.active = true;
         this.searchListView.active = false;
         this.wordListView.active = false;
-        
-        this.node.runAction(cc.moveTo(0.2, cc.p(this.nodePosition.x, this.nodePosition.y)));
     },
 
     onSearch () {
+        let title = this.node.getChildByName("Title");
+        let posY = this.nodePosition.y + title.getContentSize().height;
+        this.node.stopAllActions();
+        this.node.runAction(cc.moveTo(0.2, cc.p(this.nodePosition.x, posY)));
+
         this.historyListView.active = false;
         this.searchListView.active = true;
         this.wordListView.active = false;
-
-        let title = this.node.getChildByName("Title");
-        let posY = this.nodePosition.y + title.getContentSize().height;
-        this.node.runAction(cc.moveTo(0.2, cc.p(this.nodePosition.x, posY)));
     },
 
     onWord () {
+        let title = this.node.getChildByName("Title");
+        let posY = this.nodePosition.y + title.getContentSize().height;
+        this.node.stopAllActions();
+        this.node.runAction(cc.moveTo(0.2, cc.p(this.nodePosition.x, posY)));
+    
         this.historyListView.active = false;
         this.searchListView.active = false;
         this.wordListView.active = true;
-
-        let title = this.node.getChildByName("Title");
-        let posY = this.nodePosition.y + title.getContentSize().height;
-        this.node.runAction(cc.moveTo(0.2, cc.p(this.nodePosition.x, posY)));
     },
 
     onCancel () {
-        if (cc.EventType.ET_SEARCH_WORD == this.eventType) {
-            this.onSearch();
+        cc.log(this.eventType);
+        if (cc.EventType.ET_HISTORY_WORD == this.eventType) {
+            if (0 == cc.DB.getLinkWordCount()) {
+                this.onHistory();
+                cc.ET.onTrigger(cc.EventType.ET_HISTORY);
+                cc.ET.onTrigger(cc.EventType.ET_EXIT);
+            }
+            else {
+                cc.DB.popLinkWord();
+                if (0 == cc.DB.getLinkWordCount()) {
+                    cc.ET.onTrigger(cc.EventType.ET_HISTORY_WORD);
+                    cc.ET.onTrigger(cc.EventType.ET_BACK);
+                }
+                else {
+                    cc.ET.onTrigger(cc.EventType.ET_LINK_WORD);
+                }
+                return;
+            }
+        }
+        else if (cc.EventType.ET_SEARCH_WORD == this.eventType) {
+            if (0 == cc.DB.getLinkWordCount()) {
+                this.onSearch();
+            }
+            else {
+                cc.DB.popLinkWord();
+                if (0 == cc.DB.getLinkWordCount()) {
+                    cc.ET.onTrigger(cc.EventType.ET_SEARCH_WORD);
+                    cc.ET.onTrigger(cc.EventType.ET_BACK);
+                }
+                else {
+                    cc.ET.onTrigger(cc.EventType.ET_LINK_WORD);
+                }
+                return;
+            }
         }
         else {
             this.onHistory();
-            cc.ET.onTrigger(cc.EventType.ET_HISTORY);
             cc.ET.onTrigger(cc.EventType.ET_EXIT);
         }
+
         this.eventType = cc.EventType.ET_EXIT;
     },
 
     onTrigger (ptr, type) {
-        if (cc.EventType.ET_HISTORY_WORD == type || cc.EventType.ET_SEARCH_WORD == type) {
-            ptr.onWord();
+        if (cc.EventType.ET_SEARCH == type) {
+            ptr.onSearch();
+            ptr.eventType = type;
         }
-        ptr.eventType = type;
-
+        else if (cc.EventType.ET_HISTORY_WORD == type || cc.EventType.ET_SEARCH_WORD == type) {
+            ptr.onWord();
+            ptr.eventType = type;
+        }
     },
 });

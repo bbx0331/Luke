@@ -9,12 +9,12 @@ var DBManager = cc.Class({
         pHistoryArray: [],
         // 单词
         pSearchArray: [],
-        // 单词内容
-        pSearchContentArray: [],
         // 历史索引
         iHistoryIndex: 0,
         // 搜索索引
         iSearchIndex: 0,
+        // 链接
+        pLinkArray: [],
 
         // 历史
         getHistoryWord (index) {
@@ -29,12 +29,6 @@ var DBManager = cc.Class({
             return this.pHistoryArray.lenght || 10;
         },
 
-        getSelectHistoryWordContent () {
-            let word = this.pHistoryArray[this.iHistoryIndex];
-            let first = word.substr(0, 1);
-            return this.pDictionary[first][word];
-        },
-    
         // 搜索
         getSearchWord (index) {
             return this.pSearchArray[index] || "";
@@ -48,8 +42,39 @@ var DBManager = cc.Class({
             return this.pSearchArray.lenght || 15;
         },
 
-        getSelectSearchWordContent () {
-            return this.pSearchContentArray[this.iSearchIndex];
+        // 链接
+        getLinkWord() {
+            let len = this.pLinkArray.length;
+            if (len > 0) {
+                return this.pLinkArray[len - 1];
+            }
+            return "";
+        },
+
+        getLinkWordCount() {
+            return this.pLinkArray.length;
+        },
+
+        pushLinkWord(word) {
+            cc.log(this.pLinkArray.length);
+            this.pLinkArray.splice(this.pLinkArray.length - 1, 0, word);
+            for (let i = 0; i < this.pLinkArray.length; ++i) {
+                cc.log(this.pLinkArray[i]);
+            }
+        },
+
+        popLinkWord() {
+            // this.pLinkArray.pop();
+            this.pLinkArray.splice(this.pLinkArray.length - 1, 1);
+            for (let i = 0; i < this.pLinkArray.length; ++i) {
+                cc.log(this.pLinkArray[i]);
+            }
+        },
+
+        // 内容
+        getWordContent(word) {
+            let first = word.substr(0, 1);
+            return this.pDictionary[first][word];
         },
     
         init () {
@@ -95,7 +120,6 @@ var DBManager = cc.Class({
             }
 
             this.pSearchArray = [];
-            this.pSearchContentArray = [];
 
             let first = word.substr(0, 1);
 
@@ -111,7 +135,6 @@ var DBManager = cc.Class({
                 let unit = this.pDictionary[first][key.match(exp)];
                 if (null != unit) {
                     this.pSearchArray.push(key);
-                    this.pSearchContentArray.push(unit);
 
                     i = i + 1;
                     if (i >= count) {
