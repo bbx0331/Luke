@@ -34,9 +34,9 @@ require = function() {
         pDictionary: {},
         pHistoryArray: [],
         pSearchArray: [],
-        pSearchContentArray: [],
         iHistoryIndex: 0,
         iSearchIndex: 0,
+        pLinkArray: [],
         getHistoryWord: function getHistoryWord(index) {
           return this.pHistoryArray[index] || "";
         },
@@ -45,11 +45,6 @@ require = function() {
         },
         getHistoryWordCount: function getHistoryWordCount() {
           return this.pHistoryArray.lenght || 10;
-        },
-        getSelectHistoryWordContent: function getSelectHistoryWordContent() {
-          var word = this.pHistoryArray[this.iHistoryIndex];
-          var first = word.substr(0, 1);
-          return this.pDictionary[first][word];
         },
         getSearchWord: function getSearchWord(index) {
           return this.pSearchArray[index] || "";
@@ -60,8 +55,27 @@ require = function() {
         getSearchWordCount: function getSearchWordCount() {
           return this.pSearchArray.lenght || 15;
         },
-        getSelectSearchWordContent: function getSelectSearchWordContent() {
-          return this.pSearchContentArray[this.iSearchIndex];
+        getLinkWord: function getLinkWord() {
+          var len = this.pLinkArray.length;
+          if (len > 0) return this.pLinkArray[len - 1];
+          return "";
+        },
+        getLinkWordCount: function getLinkWordCount() {
+          return this.pLinkArray.length;
+        },
+        pushLinkWord: function pushLinkWord(word) {
+          cc.log(this.pLinkArray.length);
+          this.pLinkArray.splice(this.pLinkArray.length - 1, 0, word);
+          for (var i = 0; i < this.pLinkArray.length; ++i) cc.log(this.pLinkArray[i]);
+        },
+        popLinkWord: function popLinkWord() {
+          this.pLinkArray.splice(this.pLinkArray.length - 1, 1);
+          for (var i = 0; i < this.pLinkArray.length; ++i) cc.log(this.pLinkArray[i]);
+        },
+        getWordContent: function getWordContent(word) {
+          var first = word.substr(0, 1);
+          if (null != this.pDictionary[first]) return this.pDictionary[first][word];
+          return null;
         },
         init: function init() {
           var realUrl = cc.url.raw("resources/data/db/luke.db");
@@ -97,7 +111,6 @@ require = function() {
         search: function search(word, count) {
           if ("" == word) return;
           this.pSearchArray = [];
-          this.pSearchContentArray = [];
           var first = word.substr(0, 1);
           var expStr = "\\b" + first + ".*?";
           for (var _i = 1; _i < word.length; _i++) expStr += word.substr(_i, 1) + ".*?";
@@ -108,7 +121,6 @@ require = function() {
             var unit = this.pDictionary[first][key.match(exp)];
             if (null != unit) {
               this.pSearchArray.push(key);
-              this.pSearchContentArray.push(unit);
               i += 1;
               if (i >= count) break;
             }
@@ -175,9 +187,12 @@ require = function() {
       statics: {
         ET_HISTORY: 1,
         ET_SEARCH: 2,
-        ET_HISTORY_WORD: 3,
-        ET_SEARCH_WORD: 4,
-        ET_EXIT: 5
+        ET_LINK: 3,
+        ET_HISTORY_WORD: 4,
+        ET_SEARCH_WORD: 5,
+        ET_LINK_WORD: 6,
+        ET_BACK: 7,
+        ET_EXIT: 8
       }
     });
     cc._RF.pop();
@@ -292,6 +307,32 @@ require = function() {
     });
     cc._RF.pop();
   }, {} ],
+  LinkScript: [ function(require, module, exports) {
+    "use strict";
+    cc._RF.push(module, "08b52XzOzpA57IDdgVjjyDJ", "LinkScript");
+    "use strict";
+    cc.Class({
+      extends: cc.Component,
+      properties: {},
+      start: function start() {},
+      handler: function handler(event) {
+        var labelSegments = event.target._components[0]._labelSegments;
+        for (var i = 0; i < labelSegments.length; ++i) {
+          var labelSegment = labelSegments[i];
+          if (cc.rectContainsPoint(labelSegment.getBoundingBoxToWorld(), event.touch.getLocation())) {
+            var word = labelSegment.getString();
+            if (null != cc.DB.getWordContent(word)) {
+              cc.DB.pushLinkWord(word);
+              cc.ET.onTrigger(cc.EventType.ET_LINK_WORD);
+              cc.ET.onTrigger(cc.EventType.ET_LINK);
+            }
+            break;
+          }
+        }
+      }
+    });
+    cc._RF.pop();
+  }, {} ],
   LukeScript: [ function(require, module, exports) {
     "use strict";
     cc._RF.push(module, "2ec15OZlO1EGLgReUeDjk3S", "LukeScript");
@@ -323,43 +364,74 @@ require = function() {
         this.eventType = cc.EventType.ET_EXIT;
         this.historyListView.active = true;
         this.nodePosition = this.node.getPosition();
+        cc.ET.register(cc.EventType.ET_SEARCH, this, this.onTrigger);
         cc.ET.register(cc.EventType.ET_HISTORY_WORD, this, this.onTrigger);
         cc.ET.register(cc.EventType.ET_SEARCH_WORD, this, this.onTrigger);
       },
       start: function start() {},
       onHistory: function onHistory() {
+        this.node.stopAllActions();
+        this.node.runAction(cc.moveTo(.2, cc.p(this.nodePosition.x, this.nodePosition.y)));
         this.historyListView.active = true;
         this.searchListView.active = false;
         this.wordListView.active = false;
-        this.node.runAction(cc.moveTo(.2, cc.p(this.nodePosition.x, this.nodePosition.y)));
       },
       onSearch: function onSearch() {
+        var title = this.node.getChildByName("Title");
+        var posY = this.nodePosition.y + title.getContentSize().height;
+        this.node.stopAllActions();
+        this.node.runAction(cc.moveTo(.2, cc.p(this.nodePosition.x, posY)));
         this.historyListView.active = false;
         this.searchListView.active = true;
         this.wordListView.active = false;
-        var title = this.node.getChildByName("Title");
-        var posY = this.nodePosition.y + title.getContentSize().height;
-        this.node.runAction(cc.moveTo(.2, cc.p(this.nodePosition.x, posY)));
       },
       onWord: function onWord() {
+        var title = this.node.getChildByName("Title");
+        var posY = this.nodePosition.y + title.getContentSize().height;
+        this.node.stopAllActions();
+        this.node.runAction(cc.moveTo(.2, cc.p(this.nodePosition.x, posY)));
         this.historyListView.active = false;
         this.searchListView.active = false;
         this.wordListView.active = true;
-        var title = this.node.getChildByName("Title");
-        var posY = this.nodePosition.y + title.getContentSize().height;
-        this.node.runAction(cc.moveTo(.2, cc.p(this.nodePosition.x, posY)));
       },
       onCancel: function onCancel() {
-        if (cc.EventType.ET_SEARCH_WORD == this.eventType) this.onSearch(); else {
+        cc.log(this.eventType);
+        if (cc.EventType.ET_HISTORY_WORD == this.eventType) {
+          if (0 != cc.DB.getLinkWordCount()) {
+            cc.DB.popLinkWord();
+            if (0 == cc.DB.getLinkWordCount()) {
+              cc.ET.onTrigger(cc.EventType.ET_HISTORY_WORD);
+              cc.ET.onTrigger(cc.EventType.ET_BACK);
+            } else cc.ET.onTrigger(cc.EventType.ET_LINK_WORD);
+            return;
+          }
           this.onHistory();
           cc.ET.onTrigger(cc.EventType.ET_HISTORY);
+          cc.ET.onTrigger(cc.EventType.ET_EXIT);
+        } else if (cc.EventType.ET_SEARCH_WORD == this.eventType) {
+          if (0 != cc.DB.getLinkWordCount()) {
+            cc.DB.popLinkWord();
+            if (0 == cc.DB.getLinkWordCount()) {
+              cc.ET.onTrigger(cc.EventType.ET_SEARCH_WORD);
+              cc.ET.onTrigger(cc.EventType.ET_BACK);
+            } else cc.ET.onTrigger(cc.EventType.ET_LINK_WORD);
+            return;
+          }
+          this.onSearch();
+        } else {
+          this.onHistory();
           cc.ET.onTrigger(cc.EventType.ET_EXIT);
         }
         this.eventType = cc.EventType.ET_EXIT;
       },
       onTrigger: function onTrigger(ptr, type) {
-        cc.EventType.ET_HISTORY_WORD != type && cc.EventType.ET_SEARCH_WORD != type || ptr.onWord();
-        ptr.eventType = type;
+        if (cc.EventType.ET_SEARCH == type) {
+          ptr.onSearch();
+          ptr.eventType = type;
+        } else if (cc.EventType.ET_HISTORY_WORD == type || cc.EventType.ET_SEARCH_WORD == type) {
+          ptr.onWord();
+          ptr.eventType = type;
+        }
       }
     });
     cc._RF.pop();
@@ -389,7 +461,9 @@ require = function() {
         var panel = this.node.getChildByName("PanelSprite");
         this.panelPosition = panel.getPosition();
         this.panelContentSize = panel.getContentSize();
+        cc.ET.register(cc.EventType.ET_LINK, this, this.onTrigger);
         cc.ET.register(cc.EventType.ET_HISTORY_WORD, this, this.onTrigger);
+        cc.ET.register(cc.EventType.ET_BACK, this, this.onTrigger);
         cc.ET.register(cc.EventType.ET_EXIT, this, this.onTrigger);
       },
       start: function start() {},
@@ -397,6 +471,7 @@ require = function() {
         var flag = Boolean(Number(event));
         if (flag == this.cancel.node.active) return;
         this.cancel.node.active = flag;
+        2 == event && cc.ET.onTrigger(cc.EventType.ET_SEARCH);
         var panel = this.node.getChildByName("PanelSprite");
         if (this.cancel.node.active) {
           panel.setPosition(cc.p(this.panelPosition.x - 55, this.panelPosition.y));
@@ -407,11 +482,20 @@ require = function() {
         }
       },
       onSearch: function onSearch(ptr, event) {
-        cc.DB.search(this.search.string, 50);
-        cc.ET.onTrigger(cc.EventType.ET_SEARCH);
+        if (this.search.string.length > 0) {
+          cc.DB.search(this.search.string, 50);
+          cc.ET.onTrigger(cc.EventType.ET_SEARCH);
+        }
       },
       onTrigger: function onTrigger(ptr, type) {
-        cc.EventType.ET_EXIT == type ? ptr.onActive(ptr, 0) : cc.EventType.ET_HISTORY_WORD == type && ptr.onActive(ptr, 1);
+        if (cc.EventType.ET_LINK == type) {
+          var lable = ptr.node.getChildByName("CancelButton").getChildByName("Label")._components[0];
+          lable.string = "返回";
+        } else if (cc.EventType.ET_HISTORY_WORD == type) ptr.onActive(ptr, 1); else if (cc.EventType.ET_BACK == type) {
+          cc.log("cc.EventType.ET_BACK");
+          var _lable = ptr.node.getChildByName("CancelButton").getChildByName("Label")._components[0];
+          _lable.string = "取消";
+        } else cc.EventType.ET_EXIT == type && ptr.onActive(ptr, 0);
       }
     });
     cc._RF.pop();
@@ -541,27 +625,35 @@ require = function() {
           default: null,
           type: cc.Label
         },
-        label3: {
+        node3: {
           default: null,
-          type: cc.Label
+          type: cc.Node
         },
         label4: {
           default: null,
           type: cc.Label
         },
-        label5: {
+        node5: {
           default: null,
-          type: cc.Label
+          type: cc.Node
         },
         label6: {
           default: null,
           type: cc.Label
         },
-        label7: {
+        node7: {
           default: null,
-          type: cc.Label
+          type: cc.Node
         },
         label8: {
+          default: null,
+          type: cc.RichText
+        },
+        node9: {
+          default: null,
+          type: cc.Node
+        },
+        label10: {
           default: null,
           type: cc.Label
         }
@@ -569,29 +661,48 @@ require = function() {
       onLoad: function onLoad() {
         cc.ET.register(cc.EventType.ET_HISTORY_WORD, this, this.onTrigger);
         cc.ET.register(cc.EventType.ET_SEARCH_WORD, this, this.onTrigger);
+        cc.ET.register(cc.EventType.ET_LINK_WORD, this, this.onTrigger);
       },
       start: function start() {},
       onTrigger: function onTrigger(ptr, type) {
-        if (cc.EventType.ET_SEARCH_WORD == type) {
-          var word = cc.DB.getSelectSearchWord();
-          ptr.label1.string = word;
-          cc.DB.review(word);
-          var content = cc.DB.getSelectSearchWordContent();
-          ptr.label2.string = content["phonogram"];
-          ptr.label4.string = content["notes"];
-          ptr.label6.string = content["luke"];
-          ptr.label8.string = content["detail"];
-        } else if (cc.EventType.ET_HISTORY_WORD == type) {
-          ptr.label1.string = cc.DB.getSelectHistoryWord();
-          var _content = cc.DB.getSelectHistoryWordContent();
-          ptr.label2.string = _content["phonogram"];
-          ptr.label4.string = _content["notes"];
-          ptr.label6.string = _content["luke"];
-          ptr.label8.string = _content["detail"];
-        }
+        cc.EventType.ET_HISTORY_WORD == type ? ptr.setWordContent(cc.DB.getSelectHistoryWord()) : cc.EventType.ET_SEARCH_WORD == type ? ptr.setWordContent(cc.DB.getSelectSearchWord()) : cc.EventType.ET_LINK_WORD == type && ptr.setWordContent(cc.DB.getLinkWord());
+      },
+      isEmpty: function isEmpty(word) {
+        if ("undefined" == typeof word || null == word || "" == word) return true;
+        return false;
+      },
+      setWordContent: function setWordContent(word) {
+        var ptr = this;
+        ptr.label1.string = word;
+        var content = cc.DB.getWordContent(word);
+        if (null == content) return;
+        var phonogram = content["phonogram"];
+        ptr.label2.node.active = true;
+        ptr.isEmpty(phonogram) ? ptr.label2.node.active = false : ptr.label2.string = phonogram;
+        var notes = content["notes"];
+        ptr.node3.active = true;
+        ptr.isEmpty(notes) ? ptr.node3.active = false : ptr.label4.string = notes;
+        var luke = content["luke"];
+        ptr.node5.active = true;
+        ptr.isEmpty(luke) ? ptr.node5.active = false : ptr.label6.string = luke;
+        var linkArray = content["link"].split("/");
+        ptr.node7.active = true;
+        var len = linkArray.length;
+        if (len > 1) {
+          var stmp = "<size=32>";
+          for (var i = 0; i < len; ++i) {
+            stmp = stmp + '<color=#357AF7><on click="handler">' + linkArray[i] + "</on></color>";
+            len - 1 != i && (stmp += "<color=#808080>, </color></s>");
+          }
+          stmp += "</s>";
+          ptr.label8.string = stmp;
+        } else ptr.node7.active = false;
+        var detail = content["detail"];
+        ptr.node9.active = true;
+        ptr.isEmpty(detail) ? ptr.node9.active = false : ptr.label10.string = detail;
       }
     });
     cc._RF.pop();
   }, {} ]
-}, {}, [ "DBManager", "EventTrigger", "EventType", "HistoryItem", "HistoryListView", "LukeScript", "SearchEditBox", "SearchItem", "SearchListView", "WordListView" ]);
+}, {}, [ "DBManager", "EventTrigger", "EventType", "HistoryItem", "HistoryListView", "LinkScript", "LukeScript", "SearchEditBox", "SearchItem", "SearchListView", "WordListView" ]);
 //# sourceMappingURL=project.dev.js.map

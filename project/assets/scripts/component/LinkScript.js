@@ -44,9 +44,12 @@ cc.Class({
         for (let i = 0; i < labelSegments.length; ++i) {
             var labelSegment = labelSegments[i];
             if (cc.rectContainsPoint(labelSegment.getBoundingBoxToWorld(), event.touch.getLocation())) {
-                cc.DB.pushLinkWord(labelSegment.getString());
-                cc.ET.onTrigger(cc.EventType.ET_LINK_WORD);
-                cc.ET.onTrigger(cc.EventType.ET_LINK);
+                let word = labelSegment.getString();
+                if (null != cc.DB.getWordContent(word)) {
+                    cc.DB.pushLinkWord(word);
+                    cc.ET.onTrigger(cc.EventType.ET_LINK_WORD);
+                    cc.ET.onTrigger(cc.EventType.ET_LINK);
+                }
                 break;
             }
         }

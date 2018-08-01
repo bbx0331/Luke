@@ -74,7 +74,10 @@ var DBManager = cc.Class({
         // 内容
         getWordContent(word) {
             let first = word.substr(0, 1);
-            return this.pDictionary[first][word];
+            if (null != this.pDictionary[first]) {
+                return this.pDictionary[first][word];
+            }
+            return null;
         },
     
         init () {
